@@ -1,0 +1,193 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://unpkg.com/tiny-llm-pipeline/schema.json",
+  "title": "tiny-llm-pipeline",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/Step" }
+    }
+  },
+  "required": ["steps"],
+  "definitions": {
+    "BaseStep": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string" },
+        "timeoutMs": { "type": "number", "minimum": 1 },
+        "name": { "type": "string" },
+        "retry": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "retries": { "type": "integer", "minimum": 0 },
+            "backoffMs": { "type": "number", "minimum": 0 },
+            "jitter": { "type": "number", "minimum": 0, "maximum": 1 },
+            "on": { "enum": ["any", "error", "timeout"] }
+          }
+        }
+      },
+      "required": ["type"]
+    },
+    "SetStep": {
+      "allOf": [
+        { "$ref": "#/definitions/BaseStep" },
+        {
+          "type": "object",
+          "properties": {
+            "type": { "const": "set" },
+            "var": { "type": "string" },
+            "value": {}
+          },
+          "required": ["type", "var", "value"],
+          "additionalProperties": true
+        }
+      ]
+    },
+    "LlmStep": {
+      "allOf": [
+        { "$ref": "#/definitions/BaseStep" },
+        {
+          "type": "object",
+          "properties": {
+            "type": { "const": "llm" },
+            "model": { "type": "string" },
+            "prompt": {},
+            "from": { "type": "string" },
+            "params": { "type": "object" },
+            "var": { "type": "string" }
+          },
+          "required": ["type", "model"],
+          "anyOf": [{ "required": ["prompt"] }, { "required": ["from"] }],
+          "additionalProperties": true
+        }
+      ]
+    },
+    "OutputStep": {
+      "allOf": [
+        { "$ref": "#/definitions/BaseStep" },
+        {
+          "type": "object",
+          "properties": {
+            "type": { "const": "output" },
+            "pick": {
+              "anyOf": [
+                { "type": "string" },
+                { "type": "array", "items": { "type": "string" } },
+                {
+                  "type": "object",
+                  "patternProperties": {
+                    ".*": {
+                      "type": [
+                        "string",
+                        "number",
+                        "boolean",
+                        "null",
+                        "object",
+                        "array"
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              ]
+            },
+            "value": {}
+          },
+          "required": ["type"],
+          "not": { "required": ["pick", "value"] },
+          "additionalProperties": true
+        }
+      ]
+    },
+    "IfStep": {
+      "allOf": [
+        { "$ref": "#/definitions/BaseStep" },
+        {
+          "type": "object",
+          "properties": {
+            "type": { "const": "if" },
+            "when": {},
+            "whenVar": { "type": "string" },
+            "then": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Step" }
+            },
+            "else": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Step" }
+            }
+          },
+          "required": ["type"],
+          "anyOf": [{ "required": ["when"] }, { "required": ["whenVar"] }],
+          "additionalProperties": true
+        }
+      ]
+    },
+    "ForEachStep": {
+      "allOf": [
+        { "$ref": "#/definitions/BaseStep" },
+        {
+          "type": "object",
+          "properties": {
+            "type": { "const": "foreach" },
+            "in": { "type": "string" },
+            "as": { "type": "string" },
+            "index": { "type": "string" },
+            "scoped": { "type": "boolean" },
+            "steps": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Step" }
+            }
+          },
+          "required": ["type", "in", "steps"],
+          "additionalProperties": true
+        }
+      ]
+    },
+    "ParallelStep": {
+      "allOf": [
+        { "$ref": "#/definitions/BaseStep" },
+        {
+          "type": "object",
+          "properties": {
+            "type": { "const": "parallel" },
+            "branches": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "steps": {
+                    "type": "array",
+                    "items": { "$ref": "#/definitions/Step" }
+                  }
+                },
+                "required": ["steps"],
+                "additionalProperties": false
+              }
+            },
+            "var": { "type": "string" },
+            "mode": { "enum": ["allSettled", "race"] },
+            "result": { "enum": ["context", "value"] },
+            "concurrency": { "type": "integer", "minimum": 1 }
+          },
+          "required": ["type", "branches"],
+          "additionalProperties": true
+        }
+      ]
+    },
+    "Step": {
+      "oneOf": [
+        { "$ref": "#/definitions/SetStep" },
+        { "$ref": "#/definitions/LlmStep" },
+        { "$ref": "#/definitions/OutputStep" },
+        { "$ref": "#/definitions/IfStep" },
+        { "$ref": "#/definitions/ForEachStep" },
+        { "$ref": "#/definitions/ParallelStep" }
+      ]
+    }
+  }
+}

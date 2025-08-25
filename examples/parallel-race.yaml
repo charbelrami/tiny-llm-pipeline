@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=../schema.json
+steps:
+  - type: parallel
+    mode: race
+    concurrency: 2
+    var: first
+    branches:
+      - steps:
+          - type: set
+            var: v
+            value: fast A
+          - type: output
+            pick: v
+      - steps:
+          - type: set
+            var: v
+            value: slow B
+          - type: output
+            pick: v
+  - type: output
+    pick: first

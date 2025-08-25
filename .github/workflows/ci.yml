@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, 22.x]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm ci || npm i
+      - run: npm test --silent
+      - name: Pack and import smoke test
+        run: |
+          PKG=$(npm pack --silent)
+          mkdir -p /tmp/smoke && tar -xzf "$PKG" -C /tmp/smoke --strip-components=1
+          node -e "(async()=>{const m=await import('node:url');const p=new URL('file:///tmp/smoke/index.js');const mod=await import(p); if(typeof mod.default!=='function') { throw new Error('default export not a function'); } console.log('ok')})()"

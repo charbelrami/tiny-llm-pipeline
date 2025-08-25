@@ -1,0 +1,15 @@
+# Mac
+.DS_Store
+
+# VS Code
+.vscode/
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Example outputs
+examples/snapshots/

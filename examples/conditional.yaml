@@ -1,0 +1,17 @@
+# yaml-language-server: $schema=../schema.json
+steps:
+  - type: set
+    var: user.admin
+    value: true
+  - type: if
+    when: "{{user.admin}}"
+    then:
+      - type: set
+        var: role
+        value: admin
+    else:
+      - type: set
+        var: role
+        value: guest
+  - type: output
+    pick: role

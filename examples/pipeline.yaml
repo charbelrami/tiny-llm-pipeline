@@ -1,0 +1,15 @@
+# yaml-language-server: $schema=../schema.json
+steps:
+  - type: set
+    var: poem.topic
+    value: rain
+  - type: set
+    var: prompt
+    value: |
+      Write a short haiku about {{poem.topic}}.
+  - type: llm
+    model: demo
+    from: prompt
+    var: completion
+  - type: output
+    pick: completion

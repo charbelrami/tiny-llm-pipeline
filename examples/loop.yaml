@@ -1,0 +1,19 @@
+# yaml-language-server: $schema=../schema.json
+steps:
+  - type: set
+    var: items
+    value:
+      - a
+      - b
+      - c
+  - type: foreach
+    in: items
+    as: x
+    index: i
+    scoped: true
+    steps:
+      - type: set
+        var: last
+        value: "{{i}}:{{x}}"
+  - type: output
+    pick: last

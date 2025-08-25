@@ -1,0 +1,55 @@
+{
+  "name": "tiny-llm-pipeline",
+  "version": "0.1.0",
+  "description": "YAML DSL for LLM pipeline creation. Tiny. ESM. No deps.",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/charbelrami/tiny-llm-pipeline.git"
+  },
+  "bugs": {
+    "url": "https://github.com/charbelrami/tiny-llm-pipeline/issues"
+  },
+  "homepage": "https://github.com/charbelrami/tiny-llm-pipeline#readme",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./index.js"
+    }
+  },
+  "types": "./index.d.ts",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "schema.json",
+    "bin/tiny-llm-pipeline.mjs",
+    "license",
+    "readme.md"
+  ],
+  "scripts": {
+    "test": "node --test",
+    "prepublishOnly": "node --eval 'console.log(\"Build OK\")'",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "bin": {
+    "tiny-llm-pipeline": "bin/tiny-llm-pipeline.mjs"
+  },
+  "keywords": [
+    "llm",
+    "dsl",
+    "yaml",
+    "pipeline",
+    "esm",
+    "tiny"
+  ],
+  "author": "Charbel Rami",
+  "license": "MIT",
+  "devDependencies": {
+    "prettier": "^3.6.2"
+  }
+}

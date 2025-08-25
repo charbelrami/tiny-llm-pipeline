@@ -1,0 +1,18 @@
+# yaml-language-server: $schema=../schema.json
+steps:
+  - type: parallel
+    mode: allSettled
+    var: arr
+    branches:
+      - steps:
+          - type: set
+            var: v
+            value: C
+          - type: output
+            pick: v
+      - steps:
+          - type: llm
+            model: fail
+            prompt: X
+  - type: output
+    pick: arr
