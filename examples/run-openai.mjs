@@ -18,17 +18,13 @@ const registry = {
       const model =
         (params && params.model) || process.env.OPENAI_MODEL || "gpt-4o-mini";
       const temperature = (params && params.temperature) ?? 0.7;
-      const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      const res = await fetch("https://api.openai.com/v1/responses", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
         },
-        body: JSON.stringify({
-          model,
-          messages: [{ role: "user", content: String(prompt) }],
-          temperature,
-        }),
+        body: JSON.stringify({ model, input: String(prompt), temperature }),
         signal,
       });
       const data = await res.json();
@@ -38,13 +34,7 @@ const registry = {
           `OpenAI error: ${res.status}`;
         throw new Error(msg);
       }
-      return (
-        (data.choices &&
-          data.choices[0] &&
-          data.choices[0].message &&
-          data.choices[0].message.content) ||
-        ""
-      ).trim();
+      return data.output[0].content[0].text.trim();
     },
   },
 };

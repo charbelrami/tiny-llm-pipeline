@@ -126,22 +126,19 @@ async function main() {
         openai: async ({ prompt, params, signal }) => {
           const reqModel = (params && params.model) || model;
           const reqTemp = (params && params.temperature) ?? temperature;
-          const res = await fetch(
-            "https://api.openai.com/v1/chat/completions",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${apiKey}`,
-              },
-              body: JSON.stringify({
-                model: reqModel,
-                messages: [{ role: "user", content: String(prompt) }],
-                temperature: reqTemp,
-              }),
-              signal,
+          const res = await fetch("https://api.openai.com/v1/responses", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${apiKey}`,
             },
-          );
+            body: JSON.stringify({
+              model: reqModel,
+              input: String(prompt),
+              temperature: reqTemp,
+            }),
+            signal,
+          });
           const data = await res.json();
           if (!res.ok) {
             const msg =
@@ -149,13 +146,7 @@ async function main() {
               `OpenAI error: ${res.status}`;
             throw new Error(msg);
           }
-          return (
-            (data.choices &&
-              data.choices[0] &&
-              data.choices[0].message &&
-              data.choices[0].message.content) ||
-            ""
-          ).trim();
+          return data.output[0].content[0].text.trim();
         },
       },
     };
