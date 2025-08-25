@@ -9,8 +9,14 @@ steps:
   - type: llm
     model: openai
     from: prompt
-    params: { model: "gpt-4o-mini", temperature: 0.7 }
-    retry: { retries: 2, backoffMs: 250, jitter: 0.25, on: timeout }
+    params:
+      model: gpt-4o-mini
+      temperature: 0.7
+    retry:
+      retries: 2
+      backoffMs: 250
+      jitter: 0.25
+      on: timeout
     var: completion
   - type: output
     pick: completion

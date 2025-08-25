@@ -10,7 +10,9 @@ steps:
   - type: llm
     model: ollama
     from: prompt
-    params: { model: "gemma3:1b", temperature: 0.2 }
+    params:
+      model: gemma3:1b
+      temperature: 0.2
     var: completion
   - type: output
     pick: completion
