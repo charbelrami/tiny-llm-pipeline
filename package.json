@@ -1,6 +1,6 @@
 {
   "name": "tiny-llm-pipeline",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "YAML DSL for LLM pipeline creation. Tiny. ESM. No deps.",
   "type": "module",
   "repository": {
