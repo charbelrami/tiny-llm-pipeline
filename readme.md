@@ -344,6 +344,64 @@ Run YAML pipelines directly with the provided runner (Node 18+):
 - node examples/run-pipeline.mjs examples/parallel.yaml
 - node examples/run-pipeline.mjs examples/allSettled.yaml
 
+### Function calling (tools)
+
+Add function calling with the standard `llm` step. Declare tools in YAML; the included runner handles the tool loop with OpenAI’s Responses API and returns the assistant’s final text.
+
+- YAML: `examples/openai-tools.yaml`
+- Runner: `node examples/run-openai-tools.mjs [examples/openai-tools.yaml]`
+
+Quick start
+
+- Set `OPENAI_API_KEY` (and optionally `OPENAI_MODEL`):
+  - macOS/Linux: `export OPENAI_API_KEY="<your-key>"`
+  - Optional: `export OPENAI_MODEL="gpt-4.1"`
+- Run: `node examples/run-openai-tools.mjs`
+
+YAML (excerpt)
+
+```yaml
+- type: llm
+  model: openai
+  from: prompt
+  params:
+    model: gpt-4.1
+    tool_choice: auto
+    tools:
+      - type: function
+        name: get_current_weather
+        description: Get the current weather in a given location
+        parameters:
+          type: object
+          properties:
+            location: { type: string }
+            unit: { type: string, enum: [celsius, fahrenheit] }
+          required: [location, unit]
+        strict: true
+  var: weather_summary
+```
+
+Implement a tool (runner)
+
+```js
+// examples/run-openai-tools.mjs
+const tools = {
+  async get_current_weather({ location, unit }, { signal }) {
+    return {
+      location,
+      unit,
+      current_weather: { temperature: 72, condition: "Sunny" },
+    };
+  },
+};
+```
+
+Behavior
+
+- The model may return `function_call`s. The runner executes your tool(s) and replies with `function_call_output`s until the model returns text. A small internal safety cap prevents infinite loops.
+- Supports multiple tool calls per turn.
+- Pipeline timeouts/cancellation still apply to the `llm` step.
+
 ### Provider examples (YAML)
 
 - OpenAI (YAML): set OPENAI_API_KEY (and optionally OPENAI_MODEL), then run:
