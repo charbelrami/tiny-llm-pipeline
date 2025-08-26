@@ -30,13 +30,15 @@ steps:
       Write a short haiku about {{poem.topic}}.
 
   - type: llm
-    model: demo
+    model: ollama
     from: prompt
+    params:
+      model: gemma3:1b
+      temperature: 0.7
     var: completion
 
   - type: output
-    pick:
-      - completion
+    pick: completion
 ```
 
 ```js
@@ -44,12 +46,27 @@ import createPipeline from "tiny-llm-pipeline";
 
 const registry = {
   models: {
-    demo: async ({ prompt }) => `DEMO: ${prompt.toUpperCase()}`,
+    ollama: async ({ prompt, params, signal }) => {
+      const res = await fetch("http://127.0.0.1:11434/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: params?.model ?? "gemma3:1b",
+          prompt: String(prompt),
+          stream: false,
+          options: { temperature: params?.temperature ?? 0.7 },
+        }),
+        signal,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || `Ollama ${res.status}`);
+      return data?.response || "";
+    },
   },
 };
 
 const yaml = await (await fetch("/pipeline.yaml")).text();
-const run = createPipeline(yaml, { registry, overallTimeoutMs: 2000 });
+const run = createPipeline(yaml, { registry });
 const out = await run();
 console.log(out.completion);
 ```
@@ -226,12 +243,12 @@ Note: inline map string values should use double quotes; single quotes are not n
 - **options.stepHandlers**: map of custom step handlers. When a step's `type` matches a key, that handler is invoked with helpers `{ get, set, runSteps, sleep, signal, registry, models }`. If the handler returns a value and the step has `var`, it will be assigned.
 - **returns**: `(initialContext?) => Promise<any>` with `.start(...)`, `.withSignal(...)`, and `.startWithSignal(...)`.
 
-Retry support (draft):
+Retry support:
 
 - Any step may specify `retry: { retries?: number, backoffMs?: number, jitter?: 0..1, on?: "any"|"error"|"timeout" }`.
 - Retries are attempted for `llm` and custom `stepHandlers`. User cancellations are never retried.
 
-Parallel options (draft):
+Parallel options:
 
 - `parallel.concurrency`: limit number of concurrent branches.
 - `parallel.mode: "race"`: resolve with the first successful branch and abort the rest.
@@ -268,8 +285,8 @@ Additional notes:
 
 Conditions use user-friendly truthiness:
 
-- `false`, `0`, `""`, `null`, `undefined` are falsey
-- Strings "false" and "0" (after trimming) are also treated as falsey
+- `false`, `0`, `""`, `null`, `undefined` are falsy
+- Strings "false" and "0" (after trimming) are also treated as falsy
 - Everything else is truthy
 
 Both `when` (after template rendering) and `whenVar` values are evaluated with the same rules.
